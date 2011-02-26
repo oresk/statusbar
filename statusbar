@@ -1,0 +1,208 @@
+#!/bin/bash
+ 
+### Dzen Settings
+FG='#ffffff'
+BG='#e30000'
+FN='fixed' # font
+SLEEP=1
+POP_UP_WIDTH=200
+POP_UP_LINES=9
+RESOLUTIONW=`xrandr |  sed -ne 's/.*current \([^ ]*\).*/\1/p'`
+WIDTH=580
+HEIGHT=15
+
+X=$(($RESOLUTIONW-$WIDTH))
+Y=0
+
+DZEN="dzen2 -ta r -sa l -fg $FG -bg $BG -fn $FN -l $POP_UP_LINES -h $HEIGHT -tw $WIDTH -w $POP_UP_WIDTH -x $X -y $Y \
+-e 'leaveslave=collapse;entertitle=uncollapse,ungrabkeys;leavetitle=collapse;"
+
+### Icons
+PICAC="^i($HOME/.dzen/power-ac.xbm)"
+PICACFULL="^i($HOME/.dzen/power-ac.xbm)"
+PICBAT="^i($HOME/.dzen/battery.xbm)"
+PICBAT_CRITICAL="^fg(red)^i($HOME/.dzen/power-bat.xbm)"
+PICUP="^i($HOME/.dzen/net_up_03.xbm)"
+PICDOWN="^i($HOME/.dzen/net_down_03.xbm)"
+PICNETWIRED="^i($HOME/.dzen/net-wired.xbm)"
+PICNETWIFI="^i($HOME/.dzen/net-wifi.xbm)"
+PICMEM="^i($HOME/.dzen/mem.xbm)"
+PICCPU="^i($HOME/.dzen/cpu.xbm)"
+PICVOLUME="^i($HOME/.dzen/vol-hi.xbm)"
+PICMUTE="^i($HOME/.dzen/vol-mute.xbm)"
+PICTEMP="^i($HOME/.dzen/temp.xbm)"
+DOT="^p(5)^c(5)^p(5)"
+
+### Volume mixer
+MIXER="Master"
+
+### Weather
+# Update time (in minutes)
+WEATHERUPDATE=10
+let "TEMPCOUNT=${WEATHERUPDATE}*60*60"
+#Zagreb
+URL="http://www.pljusak.com/losinjska/wx.htm"
+#Osijek
+#URL="http://www.pljusak.com/retfala/wx.htm"
+#temp file
+weathertemp=$(/bin/mktemp)
+
+### Battery
+BATNR=BAT0
+BATPATH='/sys/devices/platform/smapi'
+
+### Network
+#Wlan network interface
+INTERFACE=wlan0
+#Wired network interface
+INTERFACE1=eth0 
+
+RXBW=`cat /sys/class/net/${INTERFACE}/statistics/rx_bytes`
+TXBW=`cat /sys/class/net/${INTERFACE}/statistics/tx_bytes`
+RXBE=`cat /sys/class/net/${INTERFACE1}/statistics/rx_bytes`
+TXBE=`cat /sys/class/net/${INTERFACE1}/statistics/tx_bytes`
+
+### Temperatures
+
+#CPU=
+#GPU=
+#BAT1=
+#BAT2=
+#RAM=
+#cat /proc/acpi/ibm/therma
+
+### leds
+# 7 sleep
+# 0 ono izmedju batt i HD
+
+# Infinite loop
+while :; do
+
+# ================================ Volume information ===================================
+# volume dB
+#VOLUME=`amixer sget $MIXER | sed -ne 's/.*\%\] \[\([^]]*\).*/\1/p'`
+# volume percent
+VOLUME=`amixer sget $MIXER  | grep Mono\: | sed -e s/"  Mono: Playback [0-9]* \["// -e s/"\%.*"//`
+VOLUME="${VOLUME}%"
+
+# MUTE?
+MUTE=`amixer sget $MIXER | sed -ne 's/.*\ \[\([^]]*\).*/\1/p'`
+if  [ $MUTE = "on" ]
+	then
+	VOLPIC=${PICVOLUME}
+	else
+	VOLPIC=${PICMUTE}
+fi
+
+# ================================== Cpu information ====================================
+CF0=$(printf "%4d\n" $(echo "`cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq` /  1000" | bc))
+CF0="${CF0}MHz"
+CF1=$(printf "%4d\n" $(echo "`cat /sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq` /  1000" | bc))
+CF1="${CF1}MHz"
+
+# ================================= Temperature information =============================
+THEMPERATURES=`cat /proc/acpi/ibm/thermal`
+
+
+# ================================= Battery information =================================
+#BAT=`cat $BATPATH$BATNRremaining_percent`
+#AC_BOOL= $BATPATH/ac_connected
+
+BAT_INSTALLED=`cat ${BATPATH}/${BATNR}/installed`
+AC_BOOL=`cat ${BATPATH}/ac_connected`
+
+if [ $BAT_INSTALLED -eq 1 ]
+    then
+    BAT=`cat ${BATPATH}/${BATNR}/remaining_percent`
+    BAT="${BAT}%"
+    else
+    BAT="N/A"
+fi
+
+
+if [ $AC_BOOL -eq 1 ]
+	then
+  	ACIA=${PICAC}
+	else
+	ACIA=${PICBAT}
+fi
+
+# ================================= Network information ==================================
+LINKQUALITY=`/sbin/iwconfig $INTERFACE | sed -ne 's/.*Quality=\([^ ]*\).*/\1/p'`
+OWNMAC=`/sbin/ifconfig $INTERFACE |  sed -ne 's/.*HWaddr \([^ ]*\).*/\1/p'`
+if [ -z $LINKQUALITY ]
+	then
+	#LINKQUALITYBAR=`echo ${LINKQUALTIY} | dzen2-gdbar -fg $BG -bg #e33333 -l '' -o  -nonl -w 50`
+	LINKQUALITY="N/A"
+        OWNIP="N/A"
+	ROUTERIP="N/A"
+        ROUTERSSID="N/A"
+        ROUTERBITRATE="N/A"
+	else
+	#LINKQUALITYBAR=`echo ${LINKQUALTIY} | dzen2-gdbar -fg $BG -bg #e33333 -l '' -o  -nonl -w 50`
+	OWNIP=`/sbin/ifconfig $INTERFACE | sed -ne 's/.*addr:\([^ ]*\).*/\1/p'`
+	ROUTERIP=`/sbin/route -n | awk '$1 ~ /0.0.0.0/ && $8 ~ /wlan0/ {print $2}'`
+	ROUTERSSID=`/sbin/iwconfig $INTERFACE | sed -ne 's/.*ESSID:"\([^"]*\).*/\1/p'`
+	ROUTERBITRATE=`/sbin/iwconfig $INTERFACE | sed -ne 's/.*Bit Rate=\([^ ]*\).*/\1/p'`
+	ROUTERBITRATE="${ROUTERBITRATE} Mbps"
+	fi
+# ================================= Memory information =================================
+# Memory percent
+#MEM=`free -om | awk '/Mem:/ {print int(($3 - $7 - $6) / $2  * 100)}'`
+#MEM="${MEM}%"
+# Memory MB
+MEM=`free -om | awk '/Mem:/ {print int($3 - $7 - $6)}'`
+MEM="${MEM}MB"
+
+# ====================================== Clock ==========================================
+CLOCK=`date +"%a %d.%m.%Y %k:%M"`
+
+# ================================= Weather information =================================
+((TEMPCOUNT++))
+if [ ${TEMPCOUNT} -gt 1800 ]
+	then
+	TEMPCOUNT=0
+	tempfile=$(/bin/mktemp)
+	wget -q $URL -O - |tail -n 28 |head -n 24 > $weathertemp
+	TEMP=`cat $weathertemp | sed -ne 's/.*temperatura=\([^;]*\).*/\1/p'`
+	TEMP="${TEMP} C"
+fi
+# =============================== Network meter ==========================================
+
+# get new rx/tx counts
+
+    RXBWN=`cat /sys/class/net/${INTERFACE}/statistics/rx_bytes`
+    TXBWN=`cat /sys/class/net/${INTERFACE}/statistics/tx_bytes`
+
+    # calculate the rates
+    # format the values to 4 digit fields
+    RXRW=$(printf "%4d\n" $(echo "($RXBWN - $RXBW) / 1024/${SLEEP}" | bc))
+    TXRW=$(printf "%4d\n" $(echo "($TXBWN - $TXBW) / 1024/${SLEEP}" | bc))
+    # reset old rates
+    RXBW=$RXBWN; TXBW=$TXBWN
+
+ # get new rx/tx counts
+    RXBEN=`cat /sys/class/net/${INTERFACE1}/statistics/rx_bytes`
+    TXBEN=`cat /sys/class/net/${INTERFACE1}/statistics/tx_bytes`
+
+    # calculate the rates
+    # format the values to 4 digit fields
+    RXRE=$(printf "%4d\n" $(echo "($RXBEN - $RXBE) / 1024/${SLEEP}" | bc))
+    TXRE=$(printf "%4d\n" $(echo "($TXBEN - $TXBE) / 1024/${SLEEP}" | bc))
+    # reset old rates
+    RXBE=$RXBEN; TXBE=$TXBEN
+
+# =================================== Dzen layout ========================================
+sleep $SLEEP
+echo "^tw()$PICCPU $CF0 $PICCPU $CF1 $PICMEM $MEM \
+$PICNETWIFI $LINKQUALITY $ACIA $BAT $VOLPIC $VOLUME $PICTEMP $TEMP $DOT $CLOCK 
+MAC: $OWNMAC
+IP:  $OWNIP
+  -----------------------------
+ROUTER SSID: $ROUTERSSID
+ROUTER IP: $ROUTERIP
+BITRATE: $ROUTERBITRATE
+ ------------------------------
+$INTERFACE: $RXRW $PICDOWN $TXRW $PICUP
+$INTERFACE1:  $RXRE $PICDOWN $TXRE $PICUP"
+done | $DZEN
