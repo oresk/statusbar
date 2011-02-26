@@ -39,7 +39,8 @@ MIXER="Master"
 ### Weather
 # Update time (in minutes)
 WEATHERUPDATE=10
-let "TEMPCOUNT=${WEATHERUPDATE}*60*60"
+let "TEMPMAX=${WEATHERUPDATE}*60*60"
+TEMPCOUNT=${TEMPMAX}
 #Zagreb
 URL="http://www.pljusak.com/losinjska/wx.htm"
 #Osijek
@@ -70,10 +71,6 @@ TXBE=`cat /sys/class/net/${INTERFACE1}/statistics/tx_bytes`
 #BAT2=
 #RAM=
 #cat /proc/acpi/ibm/therma
-
-### leds
-# 7 sleep
-# 0 ono izmedju batt i HD
 
 # Infinite loop
 while :; do
@@ -128,8 +125,8 @@ if [ $AC_BOOL -eq 1 ]
 fi
 
 # ================================= Network information ==================================
-LINKQUALITY=`/sbin/iwconfig $INTERFACE | sed -ne 's/.*Quality=\([^ ]*\).*/\1/p'`
-OWNMAC=`/sbin/ifconfig $INTERFACE |  sed -ne 's/.*HWaddr \([^ ]*\).*/\1/p'`
+LINKQUALITY=`/sbin/iwconfig $INTERFACE0 | sed -ne 's/.*Quality=\([^ ]*\).*/\1/p'`
+OWNMAC=`/sbin/ifconfig $INTERFACE0 |  sed -ne 's/.*HWaddr \([^ ]*\).*/\1/p'`
 if [ -z $LINKQUALITY ]
 	then
 	#LINKQUALITYBAR=`echo ${LINKQUALTIY} | dzen2-gdbar -fg $BG -bg #e33333 -l '' -o  -nonl -w 50`
@@ -140,10 +137,10 @@ if [ -z $LINKQUALITY ]
         ROUTERBITRATE="N/A"
 	else
 	#LINKQUALITYBAR=`echo ${LINKQUALTIY} | dzen2-gdbar -fg $BG -bg #e33333 -l '' -o  -nonl -w 50`
-	OWNIP=`/sbin/ifconfig $INTERFACE | sed -ne 's/.*addr:\([^ ]*\).*/\1/p'`
+	OWNIP=`/sbin/ifconfig $INTERFACE0 | sed -ne 's/.*addr:\([^ ]*\).*/\1/p'`
 	ROUTERIP=`/sbin/route -n | awk '$1 ~ /0.0.0.0/ && $8 ~ /wlan0/ {print $2}'`
-	ROUTERSSID=`/sbin/iwconfig $INTERFACE | sed -ne 's/.*ESSID:"\([^"]*\).*/\1/p'`
-	ROUTERBITRATE=`/sbin/iwconfig $INTERFACE | sed -ne 's/.*Bit Rate=\([^ ]*\).*/\1/p'`
+	ROUTERSSID=`/sbin/iwconfig $INTERFACE0 | sed -ne 's/.*ESSID:"\([^"]*\).*/\1/p'`
+	ROUTERBITRATE=`/sbin/iwconfig $INTERFACE0 | sed -ne 's/.*Bit Rate=\([^ ]*\).*/\1/p'`
 	ROUTERBITRATE="${ROUTERBITRATE} Mbps"
 	fi
 # ================================= Memory information =================================
@@ -159,7 +156,7 @@ CLOCK=`date +"%a %d.%m.%Y %k:%M"`
 
 # ================================= Weather information =================================
 ((TEMPCOUNT++))
-if [ ${TEMPCOUNT} -gt 1800 ]
+if [ ${TEMPCOUNT} -gt ${TEMPMAX} ]
 	then
 	TEMPCOUNT=0
 	tempfile=$(/bin/mktemp)
@@ -203,6 +200,6 @@ ROUTER SSID: $ROUTERSSID
 ROUTER IP: $ROUTERIP
 BITRATE: $ROUTERBITRATE
  ------------------------------
-$INTERFACE: $RXRW $PICDOWN $TXRW $PICUP
+$INTERFACE0: $RXRW $PICDOWN $TXRW $PICUP
 $INTERFACE1:  $RXRE $PICDOWN $TXRE $PICUP"
 done | $DZEN
