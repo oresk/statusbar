@@ -53,12 +53,12 @@ BATPATH='/sys/devices/platform/smapi'
 
 ### Network
 #Wlan network interface
-INTERFACE=wlan0
+INTERFACE0=wlan0
 #Wired network interface
 INTERFACE1=eth0 
 
-RXBW=`cat /sys/class/net/${INTERFACE}/statistics/rx_bytes`
-TXBW=`cat /sys/class/net/${INTERFACE}/statistics/tx_bytes`
+RXBW=`cat /sys/class/net/${INTERFACE0}/statistics/rx_bytes`
+TXBW=`cat /sys/class/net/${INTERFACE0}/statistics/tx_bytes`
 RXBE=`cat /sys/class/net/${INTERFACE1}/statistics/rx_bytes`
 TXBE=`cat /sys/class/net/${INTERFACE1}/statistics/tx_bytes`
 
@@ -171,8 +171,8 @@ fi
 
 # get new rx/tx counts
 
-    RXBWN=`cat /sys/class/net/${INTERFACE}/statistics/rx_bytes`
-    TXBWN=`cat /sys/class/net/${INTERFACE}/statistics/tx_bytes`
+    RXBWN=`cat /sys/class/net/${INTERFACE0}/statistics/rx_bytes`
+    TXBWN=`cat /sys/class/net/${INTERFACE0}/statistics/tx_bytes`
 
     # calculate the rates
     # format the values to 4 digit fields
