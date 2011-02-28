@@ -6,7 +6,7 @@ BG='#e30000'
 FN='fixed' # font
 SLEEP=1
 POP_UP_WIDTH=200
-POP_UP_LINES=9
+POP_UP_LINES=12
 RESOLUTIONW=`xrandr |  sed -ne 's/.*current \([^ ]*\).*/\1/p'`
 WIDTH=580
 HEIGHT=15
@@ -188,16 +188,17 @@ fi
 sleep $SLEEP
 echo "^tw()$PICCPU $CF0 $PICCPU $CF1 $PICMEM $MEM \
 $PICNETWIFI $LINKQUALITY $ACIA $BAT $VOLPIC $VOLUME $PICTEMP $TEMP $DOT $CLOCK 
-MAC: $OWNMAC
-IP:  $OWNIP
+ MAC: $OWNMAC
+ IP:  $OWNIP
   -----------------------------
  ROUTER SSID: $ROUTERSSID
-ROUTER IP: $ROUTERIP
-BITRATE: $ROUTERBITRATE
- ------------------------------
-$INTERFACE0: $RXRW $PICDOWN $TXRW $PICUP
-$INTERFACE1:  $RXRE $PICDOWN $TXRE $PICUP
- ------------------------------
-CPU=$CPU GPU=$GPU BAT=$BATTHM"
+ ROUTER IP: $ROUTERIP
+ BITRATE: $ROUTERBITRATE
+  -----------------------------
+ $INTERFACE0: $RXRW $PICDOWN $TXRW $PICUP
+ $INTERFACE1:  $RXRE $PICDOWN $TXRE $PICUP
+  -----------------------------
+   CPU=$CPU GPU=$GPU BAT=$BATTHM
+"
 
 done | $DZEN
