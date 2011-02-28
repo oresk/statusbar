@@ -63,15 +63,6 @@ TXBW=`cat /sys/class/net/${INTERFACE0}/statistics/tx_bytes`
 RXBE=`cat /sys/class/net/${INTERFACE1}/statistics/rx_bytes`
 TXBE=`cat /sys/class/net/${INTERFACE1}/statistics/tx_bytes`
 
-### Temperatures
-
-#CPU=
-#GPU=
-#BAT1=
-#BAT2=
-#RAM=
-#cat /proc/acpi/ibm/therma
-
 # Infinite loop
 while :; do
 
@@ -98,8 +89,12 @@ CF1=$(printf "%4d\n" $(echo "`cat /sys/devices/system/cpu/cpu1/cpufreq/scaling_c
 CF1="${CF1}MHz"
 
 # ================================= Temperature information =============================
-THEMPERATURES=`cat /proc/acpi/ibm/thermal`
-
+CPU=`cat /sys/devices/platform/thinkpad_hwmon/temp1_input`
+CPU="${CPU:0:2} C"
+BATTHM=`cat /sys/devices/platform/thinkpad_hwmon/temp7_input`
+BATTHM="${BATTHM:0:2} C"
+GPU=`cat /sys/devices/platform/thinkpad_hwmon/temp4_input`
+GPU="${GPU:0:2} C"
 
 # ================================= Battery information =================================
 #BAT=`cat $BATPATH$BATNRremaining_percent`
@@ -196,10 +191,13 @@ $PICNETWIFI $LINKQUALITY $ACIA $BAT $VOLPIC $VOLUME $PICTEMP $TEMP $DOT $CLOCK
 MAC: $OWNMAC
 IP:  $OWNIP
   -----------------------------
-ROUTER SSID: $ROUTERSSID
+ ROUTER SSID: $ROUTERSSID
 ROUTER IP: $ROUTERIP
 BITRATE: $ROUTERBITRATE
  ------------------------------
 $INTERFACE0: $RXRW $PICDOWN $TXRW $PICUP
-$INTERFACE1:  $RXRE $PICDOWN $TXRE $PICUP"
+$INTERFACE1:  $RXRE $PICDOWN $TXRE $PICUP
+ ------------------------------
+CPU=$CPU GPU=$GPU BAT=$BATTHM"
+
 done | $DZEN
