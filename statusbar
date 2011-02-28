@@ -6,7 +6,7 @@ BG='#e30000'
 FN='fixed' # font
 SLEEP=1
 POP_UP_WIDTH=200
-POP_UP_LINES=12
+POP_UP_LINES=13
 RESOLUTIONW=`xrandr |  sed -ne 's/.*current \([^ ]*\).*/\1/p'`
 WIDTH=580
 HEIGHT=15
@@ -107,6 +107,8 @@ if [ $BAT_INSTALLED -eq 1 ]
     then
     BAT=`cat ${BATPATH}/${BATNR}/remaining_percent`
     BAT="${BAT}%"
+    BATPOW=$(echo "scale=2;`cat ${BATPATH}/${BATNR}/power_now` /  1000" | bc)
+    BATPOW="${BATPOW} W"
     else
     BAT="N/A"
 fi
@@ -199,6 +201,7 @@ $PICNETWIFI $LINKQUALITY $ACIA $BAT $VOLPIC $VOLUME $PICTEMP $TEMP $DOT $CLOCK
  $INTERFACE1:  $RXRE $PICDOWN $TXRE $PICUP
   -----------------------------
    CPU=$CPU GPU=$GPU BAT=$BATTHM
+     BATTERY POWER= $BATPOW
 "
 
 done | $DZEN
